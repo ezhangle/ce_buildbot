@@ -64,9 +64,10 @@ def add_common_steps(factory):
                               workdir=util.Interpolate('build/%(prop:project)s')))
     factory.addStep(steps.Git(name='get dependencies',
                               shallow=True,
+                              timeout=3600,
                               env={'GIT_SSH': util.Interpolate('%(prop:git_ssh)s')},
                               alwaysUseLatest=True,
-                              repourl='git@github.com:patsytau/ce_sdks.git',
+                              repourl='git@gitlab.com:patsytau/ce_sdks.git',
                               branch=util.Interpolate('%(prop:branch)s'),
                               workdir=util.Interpolate('build/ce_sdks')))
     factory.addStep(steps.ShellCommand(name='link dependencies',
