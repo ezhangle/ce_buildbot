@@ -14,39 +14,46 @@ def compute_build_properties(props):
     Set the build properties required by the target, for instance; the path to the toolchain file.
     :param props: Current build properties.
     """
+
+    # This ugly construction works around (by effectively hard-coding) a problem with 'buildbot try', whereby
+    # the project property wasn't being set. Other properties were, so it's likely a problem with the way
+    # I've written the 'Try' scheduler.
+    project = props.getProperty('project')
+    if not project:
+        project = 'CRYENGINE'
+
     build_properties = {
-        'repository': 'git://github.com/CRYTEK-CRYENGINE/{}.git'.format(props.getProperty('project')),
+        'project': project,
+        'repository': 'git@github.com:CRYTEK-CRYENGINE/{}.git'.format(project),
         'cmakegenerator': CMAKE_GENERATORS.get(props.getProperty('target'))
     }
 
-    # Put this here to avoid PEP8 shenanigans.
-    win_link_sdk_cmd = r'rmdir %(prop:project)s\Code\SDKs & mklink /J %(prop:project)s\Code\SDKs ce_sdks'
-
     if props.getProperty('target') == 'win_x86':
         build_properties.update({
-            'git_ssh': r'C:\Program Files (x86)\PuTTY\plink.exe',
             'vsplatform': 'Win32',
             'cmake_sln_tag': 'Win32',
-            'toolchain_path': 'Tools/CMake/toolchain/windows/WindowsPC-MSVC.cmake',
-            'link_sdk_cmd': util.Interpolate(win_link_sdk_cmd)
+            'rm_sdklink_cmd': r'rmdir {proj}\Code\SDKs'.format(proj=project),
+            'mk_sdklink_cmd': 'mklink /J {proj}\Code\SDKs ce_sdks'.format(proj=project)
         })
     elif props.getProperty('target') == 'win_x64':
         build_properties.update({
-            'git_ssh': r'C:\Program Files (x86)\PuTTY\plink.exe',
             'vsplatform': 'x64',
             'cmake_sln_tag': 'Win64',
             'toolchain_path': 'Tools/CMake/toolchain/windows/WindowsPC-MSVC.cmake',
-            'link_sdk_cmd': util.Interpolate(win_link_sdk_cmd)
+            'rm_sdklink_cmd': r'rmdir {proj}\Code\SDKs'.format(proj=project),
+            'mk_sdklink_cmd': 'mklink /J {proj}\Code\SDKs ce_sdks'.format(proj=project)
         })
     elif props.getProperty('target') == 'linux_x64_gcc':
         build_properties.update({
             'toolchain_path': 'Tools/CMake/toolchain/linux/Linux_GCC.cmake',
-            'link_sdk_cmd': ['ln', '-sfn', 'ce_sdks', util.Interpolate('%(prop:project)s/Code/SDKs')]
+            'rm_sdklink_cmd': ['rm', '{}/Code/SDKs'.format(project)],
+            'mk_sdklink_cmd': ['ln', '-s', 'ce_sdks', '{}/Code/SDKs'.format(project)]
         })
     elif props.getProperty('target') == 'linux_x64_clang':
         build_properties.update({
             'toolchain_path': 'Tools/CMake/toolchain/linux/Linux_Clang.cmake',
-            'link_sdk_cmd': ['ln', '-sfn', 'ce_sdks', util.Interpolate('%(prop:project)s/Code/SDKs')]
+            'rm_sdklink_cmd': ['rm', '{}/Code/SDKs'.format(project)],
+            'mk_sdklink_cmd': ['ln', '-sfn', 'ce_sdks', '{}/Code/SDKs'.format(project)]
         })
     return build_properties
 
@@ -57,21 +64,23 @@ def add_common_steps(factory):
     :param factory: Factory to which the steps should be added.
     """
     factory.addStep(steps.SetProperties(properties=compute_build_properties))
+
+    # Remove pre-existing link to avoid Code/SDKs being blown away by the 'get code' step.
+    factory.addStep(steps.ShellCommand(name='unlink dependencies',
+                                       command=util.Property('rm_sdklink_cmd')))
     factory.addStep(steps.Git(name='get code',
-                              alwaysUseLatest=True,
+                              timeout=3600,
                               repourl=util.Interpolate('%(prop:repository)s'),
                               branch=util.Interpolate('%(prop:branch)s'),
                               workdir=util.Interpolate('build/%(prop:project)s')))
     factory.addStep(steps.Git(name='get dependencies',
-                              shallow=True,
                               timeout=3600,
-                              env={'GIT_SSH': util.Interpolate('%(prop:git_ssh)s')},
                               alwaysUseLatest=True,
                               repourl='git@gitlab.com:patsytau/ce_sdks.git',
                               branch=util.Interpolate('%(prop:branch)s'),
                               workdir=util.Interpolate('build/ce_sdks')))
     factory.addStep(steps.ShellCommand(name='link dependencies',
-                                       command=util.Property('link_sdk_cmd')))
+                                       command=util.Property('mk_sdklink_cmd')))
     factory.addStep(steps.CMake(name='configure',
                                 path=util.Interpolate('../%(prop:project)s'),
                                 generator=util.Interpolate('%(prop:cmakegenerator)s'),
