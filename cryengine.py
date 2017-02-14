@@ -64,7 +64,8 @@ def add_common_steps(factory):
 
     # Remove pre-existing link to avoid Code/SDKs being blown away by the 'get code' step.
     factory.addStep(steps.ShellCommand(name='unlink dependencies',
-                                       command=util.Property('rm_sdklink_cmd')))
+                                       command=util.Property('rm_sdklink_cmd'),
+                                       warnOnFailure=True))
     factory.addStep(steps.Git(name='get code',
                               timeout=3600,
                               repourl=util.Interpolate('git@%(prop:repository)s'),
