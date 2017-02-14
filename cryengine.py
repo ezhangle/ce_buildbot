@@ -1,6 +1,4 @@
-
 from buildbot.plugins import *
-
 
 CMAKE_GENERATORS = {'win_x86': 'Visual Studio 14 2015',
                     'win_x64': 'Visual Studio 14 2015 Win64',
@@ -24,7 +22,6 @@ def compute_build_properties(props):
 
     build_properties = {
         'project': project,
-        'repository': 'git@github.com:CRYTEK-CRYENGINE/{}.git'.format(project),
         'cmakegenerator': CMAKE_GENERATORS.get(props.getProperty('target'))
     }
 
@@ -70,13 +67,13 @@ def add_common_steps(factory):
                                        command=util.Property('rm_sdklink_cmd')))
     factory.addStep(steps.Git(name='get code',
                               timeout=3600,
-                              repourl=util.Interpolate('%(prop:repository)s'),
+                              repourl=util.Interpolate('git@%(prop:repository)s'),
                               branch=util.Interpolate('%(prop:branch)s'),
                               workdir=util.Interpolate('build/%(prop:project)s')))
     factory.addStep(steps.Git(name='get dependencies',
                               timeout=3600,
                               alwaysUseLatest=True,
-                              repourl='git@gitlab.com:patsytau/ce_sdks.git',
+                              repourl=util.Interpolate('git@%(prop:sdk_repo_url)s'),
                               branch=util.Interpolate('%(prop:branch)s'),
                               workdir=util.Interpolate('build/ce_sdks')))
     factory.addStep(steps.ShellCommand(name='link dependencies',
