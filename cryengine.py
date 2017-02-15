@@ -29,7 +29,8 @@ def compute_build_properties(props):
         build_properties.update({
             'vsplatform': 'Win32',
             'cmake_sln_tag': 'Win32',
-            'rm_sdklink_cmd': r'rmdir {proj}\Code\SDKs'.format(proj=project),
+            'toolchain_path': 'Tools/CMake/toolchain/windows/WindowsPC-MSVC.cmake',
+            'rm_sdklink_cmd': r'if exist {proj}\Code\SDKs rmdir {proj}\Code\SDKs'.format(proj=project),
             'mk_sdklink_cmd': r'mklink /J {proj}\Code\SDKs ce_sdks'.format(proj=project)
         })
     elif props.getProperty('target') == 'win_x64':
@@ -37,7 +38,7 @@ def compute_build_properties(props):
             'vsplatform': 'x64',
             'cmake_sln_tag': 'Win64',
             'toolchain_path': 'Tools/CMake/toolchain/windows/WindowsPC-MSVC.cmake',
-            'rm_sdklink_cmd': r'rmdir {proj}\Code\SDKs'.format(proj=project),
+            'rm_sdklink_cmd': r'if exist {proj}\Code\SDKs rmdir {proj}\Code\SDKs'.format(proj=project),
             'mk_sdklink_cmd': r'mklink /J {proj}\Code\SDKs ce_sdks'.format(proj=project)
         })
     elif props.getProperty('target') == 'linux_x64_gcc':
