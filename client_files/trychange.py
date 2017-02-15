@@ -14,6 +14,7 @@ class PyTry:
 
         self.data = {}
         self.branch = ''
+        self.new_head = ''
         self.repository = ''
         self.sdk_repo_url = ''
         self.buildbot_url = ''
@@ -74,6 +75,7 @@ class PyTry:
 
             prop_list = ['branch={}'.format(self.branch),
                          'repository={}'.format(self.repository),
+                         'head_ref={}'.format(self.new_head),
                          'sdk_repo_url={}'.format(self.sdk_repo_url)]
             for k in data:
                 prop_list.append('{}={}'.format(k, data[k]))
@@ -110,6 +112,10 @@ class PyTry:
         raw_output = subprocess.check_output(['git', 'remote', 'get-url', 'origin']).decode()
         self.repository = raw_output.strip().replace('git@', '')   # 'git@' is awkward to pass.
         print('Found repository "{}".'.format(self.repository))
+
+        raw_output = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode()
+        self.new_head = raw_output.strip()
+        print('Head ref "{}".'.format(self.new_head))
 
     def gather_data(self):
         with open('buildbot_config.json') as cfg:
