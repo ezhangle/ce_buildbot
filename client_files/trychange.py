@@ -122,7 +122,7 @@ class PyTry:
             self.data = json.load(cfg)
 
         self.targets = self.data['targets']
-        self.configs = self.data['available']
+        self.configs = self.data['configs']
         self.buildbot_url = self.data['buildbot_url']
         self.sdk_repo_url = self.data['sdk_repo_url']
 

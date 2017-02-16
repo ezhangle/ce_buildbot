@@ -1,6 +1,6 @@
 {
 	"targets": ["win_x64", "win_x86", "linux_x64_clang", "linux_x64_gcc"],
-	"available": ["debug", "profile", "release"],
+	"configs": ["debug", "profile", "release"],
 	"buildbot_url": "localhost:8031",
 	"sdk_repo_url": "gitlab.com:patsytau/ce_sdks.git",
 
