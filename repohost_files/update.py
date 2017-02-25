@@ -8,7 +8,7 @@ import requests
 def main(argv):
     # Argument order is defined by git, we cannot use '--name' parameters.
     branch = argv[1]
-    oldref = argv[2]
+    oldref = argv[2]    # Unused, but here for clarity.
     newref = argv[3]
 
     available_heads = os.listdir(os.path.join('refs', 'heads'))

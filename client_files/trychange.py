@@ -7,6 +7,11 @@ from tkinter import *
 
 
 class PyTry:
+    """
+    This is a very simple program that presents a GUI of tickboxes for each valid platform/config that a repo can build.
+    Platforms/configs that are required to be built before submission are read from the branch's buildbot_config.json,
+    which must also be on the server for its counterpart (the repository's 'update' hook) to check.
+    """
     def __init__(self, tkroot):
         self.buttons = {}
         self.frame = Frame(tkroot)
@@ -64,6 +69,10 @@ class PyTry:
         Button(self.frame, text='Launch', command=self.launch_builds).grid(column=1)
 
     def launch_builds(self):
+        """
+        Send the patch to the buildbot server and instruct it to build the selected configurations. This uses
+        the buildbot package, which must be installed from PIP (or frozen into an executable and stored locally).
+        """
         for buttonname in self.buttons:
             if not self.buttons[buttonname].get():
                 continue
@@ -95,8 +104,7 @@ class PyTry:
 
     def select_buttons(self):
         """
-        Tick the boxes corresponding to the required targets and configurations
-        for this branch.
+        Tick the boxes corresponding to the required targets and configurations for this branch.
         """
         for target in self.targets:
             for config in self.configs:
@@ -105,6 +113,9 @@ class PyTry:
                     self.checkboxes[name].select()
 
     def read_repo_data(self):
+        """
+        Read data about a repository by running git commands an parsing their output.
+        """
         raw_output = subprocess.check_output(['git', 'branch']).decode()
         self.branch = raw_output.strip().split(' ')[1]  # "* release* -> "release"
         print('Found local branch "{}".'.format(self.branch))
@@ -118,6 +129,9 @@ class PyTry:
         print('Head ref "{}".'.format(self.new_head))
 
     def gather_data(self):
+        """
+        Read information from the buildbot config file and store the data for setting up the GUI later.
+        """
         with open('buildbot_config.json') as cfg:
             self.data = json.load(cfg)
 
@@ -136,7 +150,7 @@ if __name__ == '__main__':
     root = Tk()
 
     parser = argparse.ArgumentParser('Try a change against a buildbot server.')
-    parser.add_argument('--repopath', required=True, help='Path to the database to use.')
+    parser.add_argument('--repopath', required=True, help='Path to the repository that you want to build.')
     args = parser.parse_args()
 
     d = PyTry(root)
