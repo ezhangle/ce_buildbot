@@ -2,8 +2,8 @@
 This is a simple buildbot (www.buildbot.net) configuration for use with CRYENGINE (www.cryengine.com) projects.
 It assumes that the code and dependencies are hosted in git repositories.
 
-This setup can be used to can compile the current state of a branch, alternatively, it can be used to 'try' a change.
-That is, to compile a change in different configurations and report and problems encountered.
+This setup can be used to can compile the current state of a branch by using buildbot's 'Force' scheduler.
+It can also be used to 'try' a change - compiling it in different configurations and report and problems encountered.
 As such developers can make sure they won't break compilation before they submit their code.
 
 By using a repository hook is used to check compilation status, developers can be required to ensure that their code
